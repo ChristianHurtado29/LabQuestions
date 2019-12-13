@@ -48,5 +48,46 @@ struct LabQuestionsAPIClient {
                 
             }
         }
+        
+    }
+    static func postQuestion(question: PostedQuestion, completion: @escaping (Result<Bool, AppError>) -> ()) {
+        
+        let endpointURLString = "https://5df04c1302b2d90014e1bd66.mockapi.io/questions"
+        
+        // create a url
+        guard let url = URL(string: endpointURLString) else {
+            completion(.failure(.badURL(endpointURLString)))
+            return
+        }
+        
+        // convert PostedQuestion to Data
+        do {
+            let data = try JSONEncoder().encode(question)
+            
+            // configure our URLRequest
+            // url
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            
+            // type of data
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            // provide data being sent to web api
+            request.httpBody = data
+            
+            // execute POST request
+            // either our completion captures Data or an AppError
+            NetworkHelper.shared.performDataTask(with: request) { (result) in
+                switch result {
+                case .failure(let appError):
+                    completion(.failure(.networkClientError(appError)))
+                case .success:
+                    completion(.success(true))
+                }
+            }
+            
+        } catch {
+            completion(.failure(.encodingError(error)))
+        }
     }
 }

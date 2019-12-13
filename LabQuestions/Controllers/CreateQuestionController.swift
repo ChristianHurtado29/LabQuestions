@@ -55,10 +55,34 @@ class CreateQuestionController: UIViewController {
     
     @IBAction func createQuestion(_ sender: UIBarButtonItem) {
         // 3 required parameters to create a PostedQuestion
-        guard let questionTitle = titleTextField.text,
+        guard let questionTitle = titleTextField.text, !questionTitle.isEmpty,
+            let labName = labName,
+            let labDescription = questionTextView.text, !labDescription.isEmpty else {
+              showAlert(title: "Missing Fields", message: "Title, Description are required")
+                return
+        }
+        
+        let question = PostedQuestion(title: questionTitle,
+                                      labName: labName,
+                                      description: labDescription,
+                                      createdAt: String.getISOTimestamp())
+        
+        
+        LabQuestionsAPIClient.postQuestion(question: question) { [weak self] (result) in
+            switch result {
+            case .failure(let appError):
+                DispatchQueue.main.async {
+                    self?.showAlert(title: "Error posting question"
+                        , message: "\(appError)")
+                }
+            case .success:
+                DispatchQueue.main.async {
+                    self?.showAlert(title: "Success", message: "\(questionTitle) was posted")
+                }
+                }
+            }
+        }
     }
-    
-}
 
 extension CreateQuestionController: UIPickerViewDataSource{
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
