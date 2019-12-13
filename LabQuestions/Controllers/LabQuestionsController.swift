@@ -28,13 +28,26 @@ class LabQuestionsController: UIViewController {
         loadQuestions()
     }
     
+    func configureRefreshControl() {
+        refreshControl = UIRefreshControl()
+        tableView.refreshControl = refreshControl
+        
+        // programmable target-action using objective-c runtime api
+        refreshControl.addTarget(<#T##target: Any?##Any?#>, action: <#T##Selector#>, for: <#T##UIControl.Event#>)
+    }
+    
     private func loadQuestions(){
         LabQuestionsAPIClient.fetchQuestions { [weak self] (result) in
             switch result{
             case .failure(let appError):
                 self?.showAlert(title: "App Error", message: "\(appError)")
             case .success(let questions):
-                self?.questions = questions
+                
+                // sorting by most recent Date
+                // isoStringToDate() converts an ISO date string to a Date object
+                // we need those Date objects so we can sort our lab questions
+                // here we are sorting descending z -> a or 12:50pm, 11:00am
+                self?.questions = questions.sorted { $0.createdAt.isoStringToDate() > $1.createdAt.isoStringToDate() }
             }
         }
     }
@@ -50,7 +63,7 @@ extension LabQuestionsController: UITableViewDataSource{
         let cell = tableView.dequeueReusableCell(withIdentifier: "questionCell", for: indexPath)
         let question = questions[indexPath.row]
         cell.textLabel?.text = question.title
-        
+        cell.detailTextLabel?.text = question.createdAt.convertISODate() + " - \(question.labName)"
         return cell
         
     }
