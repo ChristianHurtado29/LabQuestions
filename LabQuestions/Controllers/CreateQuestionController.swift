@@ -55,6 +55,7 @@ class CreateQuestionController: UIViewController {
     
     @IBAction func createQuestion(_ sender: UIBarButtonItem) {
         // 3 required parameters to create a PostedQuestion
+        guard let questionTitle = titleTextField.text,
     }
     
 }
